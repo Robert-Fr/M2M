@@ -15,6 +15,19 @@ int uart_receive(int uart, unsigned char *s) {
 }
 
 /**
+ * Receive a character from the given uart, this is a blocking call.
+ * Returns 1 when a character was read.
+ */
+int uart_receive_blocking(int uart, unsigned char *s) {
+  unsigned short* uart_fr = (unsigned short*) (uart + UART_FR);
+  unsigned short* uart_dr = (unsigned short*) (uart + UART_DR);
+  while (*uart_fr & UART_RXFE)
+  ;
+  *s = (*uart_dr & 0xff);
+  return 1;
+}
+
+/**
  * Sends a character through the given uart, this is a blocking call.
  * The code spins until there is room in the UART TX FIFO queue to send
  * the character.
@@ -59,7 +72,7 @@ void c_entry() {
   while (1) {
     unsigned char c;
 #ifdef ECHO_ZZZ
-    while (0 == uart_receive(UART0, &c)) {
+    while (0 == uart_receive_blocking(UART0, &c)) {
       count++;
       if (count > 50000000) {
         uart_send_string(UART0, "\n\rZzzz....\n\r");
