@@ -1,4 +1,5 @@
 #include "main.h"
+#include "kprintf.h"
 
 /**
  * Receive a character from the given uart, this is a non-blocking call.
@@ -67,6 +68,9 @@ void uart_send_string(int uart, const unsigned char *s) {
 void c_entry() {
   int i = 0;
   int count = 0;
+  int first_char_arrow= 0;
+  int second_char_arrow = 0;
+  int first_char_del = 0;
   uart_send_string(UART0, "\nHello world!\n");
   uart_send_string(UART0, "\nQuit with \"C-a c\" and then type in \"quit\".\n");
   while (1) {
@@ -80,14 +84,45 @@ void c_entry() {
       }
     }
 #else
-    if (0==uart_receive(UART0,&c))
+    if (0==uart_receive_blocking(UART0,&c))
     continue;
 #endif
     if (c == 13) {
       uart_send(UART0, '\r');
       uart_send(UART0, '\n');
-    } else {
-      uart_send(UART0, c);
+    } 
+    else if (c == 51) { //DELETE
+      first_char_del = 1;
+    } 
+    else if (first_char_del && c == 126) { //DELETE
+      kprintf("DEL \n", c);
+      first_char_del = 0;
+    } 
+    else if (c == 127) { //BACKSPACE
+      kprintf("BACKSPACE \n", c);
+    } 
+    else if (c == 27) {
+      first_char_arrow = 1;
+    } 
+    else if (first_char_arrow == 1 && c == 91) {
+      second_char_arrow = 1;
+    }
+    else if (second_char_arrow ==1 && c == 68) {
+      kprintf("fleche gauche \n", c);
+      first_char_arrow=0;
+      second_char_arrow=0;
+    }
+    else if (second_char_arrow ==1 && c == 67) {
+      kprintf("fleche droite \n", c);
+      first_char_arrow=0;
+      second_char_arrow=0;
+    }
+    else {
+      //uart_send(UART0, c);
+      kprintf("code lu : %d \n", c);
+      first_char_arrow=0;
+      second_char_arrow=0;
+      first_char_del = 0;
     }
   }
 }
