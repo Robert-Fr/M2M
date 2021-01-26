@@ -34,11 +34,11 @@
  *  @(#)subr_prf.c  8.3 (Berkeley) 1/21/94
  */
 
-#include "main.h"
+#include "uart.h"
 
-// typedef unsigned long size_t;
-// typedef long ssize_t;
-// #define NULL ((void*)0)
+ //typedef unsigned long size_t;
+ //typedef long ssize_t;
+ //#define NULL ((void*)0)
 
 #ifdef __64BIT__
 typedef unsigned long long uintmax_t;

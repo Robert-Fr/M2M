@@ -65,4 +65,11 @@ SECTIONS
  . = ALIGN(8);
  . = . + 0x1000; /* 4kB of stack memory */
  stack_top = .;
+ /* 
+  * Reserve some memory for the C stack
+  * for irq ??
+  */
+ . = ALIGN(8);
+ . = . + 0x1000; /* 4kB of stack memory */
+ irq_stack_top = .;
 }
