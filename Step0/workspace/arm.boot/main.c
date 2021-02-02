@@ -15,7 +15,7 @@
  */
 void c_entry() {
   //TODO : 
-  //appel a irqs_setup()
+  //on appelle a irqs_setup() pour 
   //appel a irqs_enable()
 
   int i = 0;

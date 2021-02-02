@@ -22,7 +22,7 @@ int uart_receive_blocking(int uart, unsigned char *s) {
   unsigned short* uart_fr = (unsigned short*) (uart + UART_FR);
   unsigned short* uart_dr = (unsigned short*) (uart + UART_DR);
   while (*uart_fr & UART_RXFE)
-  ;//TODO : appel a wfi()  ?
+  ;
   *s = (*uart_dr & 0xff);
   return 1;
 }
@@ -36,7 +36,7 @@ void uart_send(int uart, unsigned char s) {
   unsigned short* uart_fr = (unsigned short*) (uart + UART_FR);
   unsigned short* uart_dr = (unsigned short*) (uart + UART_DR);
   while (*uart_fr & UART_TXFF)
-    ;//TODO : appel a wfi()  ?
+    ;
   *uart_dr = s;
 }
 
@@ -50,3 +50,9 @@ void uart_send_string(int uart, const unsigned char *s) {
     s++;
   }
 }
+
+void uart0_isr(){
+  //TODO
+}
+
+//TODO : ecrire une fonction pour depuis le main.c lire dans le buffer circulaire 

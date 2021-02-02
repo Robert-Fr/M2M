@@ -81,6 +81,20 @@ void uart_send(int uart, unsigned char s);
  */
 void uart_send_string(int uart, const unsigned char *s);
 
+/*
+     Cette fonction est appelée pour répondre à une exception levée par l'UART0 :
+     - Il faut d'abord récupérer les caractères au niveau de l'UART tant qu'il y en a pour
+     remplir le buffer circulaire (ou jusqu'a ce que le buffer soit plein)
+     - Il faut une fois finit mettre 1 dans le registre UART Interrupt Clear, pour dire à
+     l'UART que l'on a finit de traiter son exception pour qu'il puisse en lever de nouveau s'il en a besoin
+*/
+void uart0_isr();
 
+// Cette variable globale indique l'adresse en mémoire de 
+#define UART0_IRQ 1 //TODO
+
+typedef circular_buffer{
+    int todo; //TODO
+};
 
 #endif /* UART_H_ */
