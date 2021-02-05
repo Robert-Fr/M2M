@@ -14,9 +14,10 @@
  * in assembly language, see the startup.s file.
  */
 void c_entry() {
-  //TODO : 
   //on appelle a irqs_setup() pour 
+  irqs_setup();
   //appel a irqs_enable()
+  irqs_enable();
 
   int i = 0;
   int count = 0;
@@ -28,16 +29,17 @@ void c_entry() {
   while (1) {
     unsigned char c;
 #ifdef ECHO_ZZZ
-    while (0 == uart_receive_blocking(UART0, &c)) {
+    while (0 == read_buffer(&c)) {
       count++;
       if (count > 50000000) {
         uart_send_string(UART0, "\n\rZzzz....\n\r");
         count = 0;
       }
+      _wfi();
     }
 #else
-    if (0==uart_receive_blocking(UART0,&c))
-    continue;
+    if (0==read_buffer(&c))
+      _wfi();
 #endif
     if (c == 13) {
       uart_send(UART0, '\r');
@@ -59,12 +61,12 @@ void c_entry() {
     else if (first_char_arrow == 1 && c == 91) {
       second_char_arrow = 1;
     }
-    else if (second_char_arrow ==1 && c == 68) {
+    else if (second_char_arrow ==1 && c == 68) {//LEFT ARROW
       kprintf("fleche gauche \n", c);
       first_char_arrow=0;
       second_char_arrow=0;
     }
-    else if (second_char_arrow ==1 && c == 67) {
+    else if (second_char_arrow ==1 && c == 67) {//RIGHT ARROW
       kprintf("fleche droite \n", c);
       first_char_arrow=0;
       second_char_arrow=0;

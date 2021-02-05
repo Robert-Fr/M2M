@@ -8,6 +8,7 @@
 #ifndef ISR_H_
 #define ISR_H_
 
+#include "uart.h"
 /*
      Cette fonction est appelé par la fonction _irq_handler de exception.s :
      Quand le PIC demande au processeur de traiter une exception IRQ, et que le 
@@ -64,6 +65,6 @@ void irqs_disable();
 /*   Cette fonction est appelé lorsque la valeur -1 est renvoyé par la fonction pic_next_raised_irq()
      - Il ne faut rien faire dans le contexte dans l'architecture dans laquelle on est
 */
-   void pic_enable_all_irqs(){
+  //void pic_enable_all_irqs(){
 
 #endif /* ISR_H_ */

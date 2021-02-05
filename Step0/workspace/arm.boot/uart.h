@@ -81,20 +81,28 @@ void uart_send(int uart, unsigned char s);
  */
 void uart_send_string(int uart, const unsigned char *s);
 
+#define UART0IMSC UART0+0x38 // l'adresse du registre UART_IMSC de l'uart 0 (doc de l'UART)
+#define RXIM (1<<4) //le 4ème bit du registre UARTIMSC : Receive interrupt mask (doc de l'UART)
+#define UART0ICR UART0+0x44 //l'adresse du registre UART_ICR de l'uart 0 (doc de l'UART)
+#define RXIC (1<<4) //le 4ème bit du registre UART_ICR : Receive interrupt clear (doc de l'UART)
+
+#define VIC_BASE_ADDRESS 0x10140000 //adresse de base du VIC (trouvé dans la doc de la board : chapitre "interrupt controllers")
+#define VICINTENABLE VIC_BASE_ADDRESS+0x010 //l'adresse du registre VICINTENABLE (trouvé sur la doc du VIC )
+#define VICIRQSTATUS VIC_BASE_ADDRESS+0x000//l'adresse du registre VICIRQSTATUS (trouvé sur la doc du VIC )
+#define VIC_UART0_LINE (1<<12) //Doc de la board section sur l'UART : il est dit que pour UART 0 c'est le 12ème bit pour les interruptions
+
+#define UART0_IRQ 12
+
 /*
      Cette fonction est appelée pour répondre à une exception levée par l'UART0 :
      - Il faut d'abord récupérer les caractères au niveau de l'UART tant qu'il y en a pour
      remplir le buffer circulaire (ou jusqu'a ce que le buffer soit plein)
      - Il faut une fois finit mettre 1 dans le registre UART Interrupt Clear, pour dire à
-     l'UART que l'on a finit de traiter son exception pour qu'il puisse en lever de nouveau s'il en a besoin
+     l'UART que l'on a finit de traiter son exception pour qu'il puisse en lever de nouveau s'il en a besoin (Se fait tout seul si on lit dans la FIFO)
 */
 void uart0_isr();
 
-// Cette variable globale indique l'adresse en mémoire de 
-#define UART0_IRQ 1 //TODO
-
-typedef circular_buffer{
-    int todo; //TODO
-};
+//TODO :
+int read_buffer(char* c);
 
 #endif /* UART_H_ */
