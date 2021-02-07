@@ -67,4 +67,13 @@ void irqs_disable();
 */
   //void pic_enable_all_irqs(){
 
+
+
+ //je définis les fonctions ici même si elles osnt déclarés dans exception.s pour ne pas avoir de warning a la compilation
+  void _irqs_setup(void);
+  void _irqs_enable(void);
+  void _irqs_disable(void);
+  void _copy_vector(void);
+  void _wfi(void);
+
 #endif /* ISR_H_ */

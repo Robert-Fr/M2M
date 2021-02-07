@@ -65,7 +65,7 @@ volatile int tail = 0;
      l'UART que l'on a finit de traiter son exception pour qu'il puisse en lever de nouveau s'il en a besoin (Se fait tout seul si on lit dans la FIFO)
 */
 void uart0_isr(){
-  uart_send_string(UART0, "\n\rUART 0 ISR\n\r");
+  //uart_send_string(UART0, "\n\rUART 0 ISR\n\r");
   char code;
   int is_next = uart_receive(UART0,&code);
   while (is_next) {
@@ -78,17 +78,24 @@ void uart0_isr(){
     is_next = uart_receive(UART0,&code);
   }
    //on dit a l'UART que son interruption a été traité
-    unsigned short* pt = (unsigned short*) (UART0ICR);
-    *pt= *pt | RXIC; //on met le bit à 1
+   //semble inutile 
+    //int* pt = (UART0ICR);
+    //*pt= *pt | RXIC; //on met le bit à 1
 }
 
-//TODO :
+/*
+    Cette fonction permet de lire un caractère dans le buffer circulaire,
+    S'il n'y a rien a lire on renvoie 0, sinon on renvoie 1 et le caractère est ecrit 
+    à l'adresse du pointeur donné
+*/
 int read_buffer(char* c){
+  //uart_send_string(UART0, "\n\rLECTURE CARAC\n\r");
   if (head == tail)
     return 0;
   else {
     *c = buffer[tail];
     tail++;
+    //uart_send_string(UART0, "\n\rCARAC TROUVER\n\r");
     return 1;
   }
 }

@@ -10,15 +10,15 @@ LDFLAGS= -T kernel.ld
 MACHINE=versatilepb
 MACHINE=versatileab
 
-MEMORY=1M
+MEMORY=32M
 
 # Notice that we link with our own linker script: test.ld
 all: startup.o main.o kprintf.o uart.o exception.o isr.o
-	$(TOOLCHAIN)-ld $(LDFLAGS) startup.o exception.o main.o kprintf.o uart.o isr.o -o kernel.elf
+	$(TOOLCHAIN)-ld $(LDFLAGS) startup.o kprintf.o uart.o isr.o exception.o main.o -o kernel.elf
 	$(TOOLCHAIN)-objcopy -O binary kernel.elf kernel.bin
 
 clean: 
-	rm -f startup.o test.o kprintf.o uart.o kernel.elf
+	rm -f startup.o test.o kprintf.o uart.o isr.o kernel.elf
 
 startup.o: startup.s
 	$(TOOLCHAIN)-as $(ASFLAGS) startup.s -o startup.o

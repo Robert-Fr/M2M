@@ -9,13 +9,15 @@
      associée afin de traiter l'exception.  
     */
    void irq_handler(){
-       uart_send_string(UART0, "\n\rIRQ_HANDLER\n\r");
+       //irqs_disable();
+       //uart_send_string(UART0, "\n\rIRQ_HANDLER\n\r");
        //TODO : coder les fonctions manquantes + definir UART0_IRQ (voir doc) :
         for (;;) {
             int irq = pic_next_raised_irq();
             switch (irq) {
                 case -1:
                     //pic_enable_all_irqs();
+                    //_irqs_enable();
                     return;
                 case UART0_IRQ:
                     uart0_isr();
@@ -42,17 +44,19 @@
     -> Pour ce faire je sais pas encore (voir doc) mais il faut passer un bit a 1 dans un mask (VICINTENABLE ou VICINTENCLEAR)
     */
    void irqs_setup(){
-       uart_send_string(UART0, "\n\rIRQ_SETUP\n\r");
+       //uart_send_string(UART0, "\n\rIRQ_SETUP\n\r");
        // Appel a la fonction copy_vector qui nous est fourni
        _copy_vector();
-        // On autorise les interruptions au niveau de l'UART :
-        unsigned short* pt = (unsigned short*) UART0IMSC;
-        *pt=RXIM; //on met les 4ème bit à 1
         //On met en place le stack du mode IRQ :
         _irqs_setup(); 
+        // On autorise les interruptions au niveau de l'UART :
+        int* pt = UART0IMSC;
+        *pt=RXIM; //on met les 4ème bit à 1
         //On autorise les interruptions au niveau du VIC
-        pt = (unsigned short*) VICINTENABLE;
+        pt = VICINTENABLE;
         *pt= VIC_UART0_LINE; //on met le bit à 1
+        //appel a irqs_enable()
+        irqs_enable();
     }
 
     /*
@@ -61,7 +65,7 @@
      dans exceptions.s. 
     */
    void irqs_enable(){
-       uart_send_string(UART0, "\n\rIRQ_ENABLE\n\r");
+       //uart_send_string(UART0, "\n\rIRQ_ENABLE\n\r");
        _irqs_enable();
    }
     /*
@@ -74,7 +78,7 @@
      désactivés à ce niveau.
     */
    void irqs_disable(){
-       uart_send_string(UART0, "\n\rIRQ_DISABLE\n\r");
+       //uart_send_string(UART0, "\n\rIRQ_DISABLE\n\r");
        _irqs_disable();
    }
     /*   Cette fonction est appelée lorsqu'une exception à été levée et que le processeur est passée en mode IRQ
@@ -83,7 +87,7 @@
     */
   int pic_next_raised_irq(){
       int i=0;
-      unsigned char* pt= (unsigned char*)VICIRQSTATUS;
+      int* pt= VICIRQSTATUS;
       for(i=0;i<31;i++){
           if(*pt & (1<<i))
             return i;

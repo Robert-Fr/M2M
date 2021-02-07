@@ -13,33 +13,38 @@
  * This is the C entry point, upcalled once the hardware has been setup properly
  * in assembly language, see the startup.s file.
  */
+
 void c_entry() {
-  //on appelle a irqs_setup() pour 
   irqs_setup();
-  //appel a irqs_enable()
-  irqs_enable();
 
   int i = 0;
-  int count = 0;
   int first_char_arrow= 0;
   int second_char_arrow = 0;
   int first_char_del = 0;
   uart_send_string(UART0, "\nHello world!\n");
   uart_send_string(UART0, "\nQuit with \"C-a c\" and then type in \"quit\".\n");
+   int eol = 0;
+   char c;
+    for (;;) {
+        eol=read_buffer(&c);
+        if (eol) {
+            kprintf("%c", c);
+        }
+        _wfi();
+    }
+  /*
   while (1) {
     unsigned char c;
 #ifdef ECHO_ZZZ
     while (0 == read_buffer(&c)) {
-      count++;
-      if (count > 50000000) {
-        uart_send_string(UART0, "\n\rZzzz....\n\r");
-        count = 0;
-      }
+      uart_send_string(UART0, "\nOn s'endort..\n");
       _wfi();
     }
 #else
-    if (0==read_buffer(&c))
+    if (0==read_buffer(&c)){
       _wfi();
+      uart_send_string(UART0, "\nOn s'endort..\n");
+    }
 #endif
     if (c == 13) {
       uart_send(UART0, '\r');
@@ -79,4 +84,5 @@ void c_entry() {
       first_char_del = 0;
     }
   }
+  */
 }

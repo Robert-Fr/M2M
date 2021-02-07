@@ -87,7 +87,7 @@ void uart_send_string(int uart, const unsigned char *s);
 #define RXIC (1<<4) //le 4ème bit du registre UART_ICR : Receive interrupt clear (doc de l'UART)
 
 #define VIC_BASE_ADDRESS 0x10140000 //adresse de base du VIC (trouvé dans la doc de la board : chapitre "interrupt controllers")
-#define VICINTENABLE VIC_BASE_ADDRESS+0x010 //l'adresse du registre VICINTENABLE (trouvé sur la doc du VIC )
+#define VICINTENABLE 0x10140010 //l'adresse du registre VICINTENABLE (trouvé sur la doc du VIC )
 #define VICIRQSTATUS VIC_BASE_ADDRESS+0x000//l'adresse du registre VICIRQSTATUS (trouvé sur la doc du VIC )
 #define VIC_UART0_LINE (1<<12) //Doc de la board section sur l'UART : il est dit que pour UART 0 c'est le 12ème bit pour les interruptions
 
