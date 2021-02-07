@@ -7,7 +7,7 @@
  * a low-power state and wake-up only to handle an interrupt from the UART.
  * But this would require setting up interrupts...
  */
-#define ECHO_ZZZ
+//#define ECHO_ZZZ
 
 /**
  * This is the C entry point, upcalled once the hardware has been setup properly
@@ -25,27 +25,19 @@ void c_entry() {
   uart_send_string(UART0, "\nQuit with \"C-a c\" and then type in \"quit\".\n");
    int eol = 0;
    char c;
+   /*
     for (;;) {
         eol=read_buffer(&c);
         if (eol) {
             kprintf("%c", c);
         }
         _wfi();
-    }
-  /*
+    }*/
   while (1) {
     unsigned char c;
-#ifdef ECHO_ZZZ
-    while (0 == read_buffer(&c)) {
-      uart_send_string(UART0, "\nOn s'endort..\n");
+    while (0==read_buffer(&c)){
       _wfi();
     }
-#else
-    if (0==read_buffer(&c)){
-      _wfi();
-      uart_send_string(UART0, "\nOn s'endort..\n");
-    }
-#endif
     if (c == 13) {
       uart_send(UART0, '\r');
       uart_send(UART0, '\n');
@@ -84,5 +76,4 @@ void c_entry() {
       first_char_del = 0;
     }
   }
-  */
 }
