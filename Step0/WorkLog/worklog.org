@@ -1,0 +1,553 @@
+# Time-stamp: <modified the 06/02/2021 (at 15:24) by Erwan Jahier>
+#+LANGUAGE:  fr
+#+LATEX_HEADER: \input{include/header} 
+#+OPTIONS:   H:3 toc:t \n:nil @:t ::t |:t ^:t -:t f:t *:t TeX:t LaTeX:nil skip:nil tags:not-in-toc
+#+SETUPFILE: include/theme-readtheorg.setup
+#+AUTHOR: Francois Robert
+#+TITLE:Bare-Metal Development | M2M Lectures | Grenoble University | François ROBERT M2 - GI | January 12, 2021
+
+
+
+
+* Preface by Pr. Olivier Gruber
+
+This document is your work log for the first step in the M2M course, master-
+level, at the University of Grenoble, France. You will have such a document for
+each step of our course together.
+This document has two parts. One part is about diverse sections, each with
+a bunch of questions that you have to answers. The other part is really a
+laboratory log, keeping track of what you do, as you do it.
+The questions provide a guideline for your learning. They are not about
+getting a good grade if you answer them correctly, they are about giving your
+pointers on what to learn about.
+The goal of the questions is therefore not to be answered in three lines of
+text and be forgotten about. The questions must be researched and thoroughly
+understood. Ask questions around you if things are unclear, to your fellow
+students and to me, your professor.
+Writing down the answers to the questions is a tool for helping your learn
+and remember. Also, it keeps track of what you know, the URLs you visited,
+the open questions that you are trouble with, etc. The tools you used. It is
+intended to be a living document, written as you go.
+Ultimately, the goal of the document is to be kept for your personal records.
+If ever you will work on embedded systems, trust me, you will be glad to have
+a written trace about all this.
+REMEMBER: plaggia is a crime that can get you evicted forever from
+french universities... The solution is simple, write using your own words or
+quote, giving the source of the quoted text. Also, remember that you do not
+learn through cut&paste. You also do not learn much by watching somebody
+else doing.
+
+* QEMU
++ =What is QEMU? Why is it necessary here?=
+
+→ QEMU est utilisé pour émuler du matériel : ici on veut émuler une “ARM-based board, the VersatilePB board” ( README - ligne 2 ), on peut parametrer la machine émuler : la quantité de RAM, le type de processeur etc …
+C’est nécessaire ici car nous n’avons pas d’exemplaire de carte chez nous, on se contente donc de simuler son comportement de façon logicielle.
+
+=Read the README-QEMU-ARM.=
+
+=Try it... with ”make run”=
+→ les installations sur mon environnement de travail on été faites : ça tourne
+
+* GNU Debugger
+
+=Here, try single-stepping the code via the GNU debugger (GDB).=
+=Read the README-GDB.=
+=Try it, in one shell, launch QEMU in debug mode and in another shell launch=
+=gdb.=
+ → dans un terminal : 
+	* make debug
+	ça lance le programme sur qemu avec l’option -S etc pour permettre à gdb de se connecter sur le port 1234.
+	Dans un autre terminal : 
+	* gdb-multiarch kernel.elf
+	quand le prompt gdb apparait : 
+	* target remote:1234
+A partir de la on peut utiliser gdb de façon normale en ligne de commande.
+
+* Makefile
+You need to read and fully understand the provided makefile. Please find a
+few questions below highlighting important points of that makefile. These ques-
+tions are there only to guide your reading of the makefile. Make sure they
+are addressed in your overall writing about the makefile and the corresponding
+challenge of building bare-metal software.
+
+**  What is the TOOLCHAIN?
+	La “Tool chain” définit l’ensemble des paquets utilisé pour la compilation d’un programme,
+ici on veut cibler une architecture ARM donc on utilise “arm-none-eabi”.
+
+**  What are VersatilePB and VersatileAB?
+	On a vu que l’on pouvait définir la machine émulé par qemu, on voit que le makefile définit la variable “MACHINE” comme étant égal à “ VersatilePB” et “ VersatileAB” : Ce sont les machines que l’on va émuler avec la commande “make run”
+
+**  What is a linker script? Look at the linker option ”-T”
+	Le “linker script” est la suite de commande qui va faire le lien entre les différents .o obtenu par la compilation des fichiers .s, pour obtenir un .elf → l’executable que l’on obtient à la fin de la chaine de compilation.
+	L’option “-T” sert à lire le fichier .ld qui définit comment doivent être lié les différents .o (voir “man arm-none-eabi-ld”) pour contrôler la façon dont les fichiers objets seront liés. 
+
+**  Read and understand the linker script that we use
+	Le fichier “kernel.ld” définit le format du fichier de sorti : kernel.elf 
+(interprétation grâce au lien suivant : https://ftp.gnu.org/old-gnu/Manuals/ld-2.9.1/html_chapter/ld_3.html#SEC17 ) :
+	- Définition du point d’entrée du programme :
+	l’adresse de la première instruction qui sera executée au lancement du programme
+	- Définiton des différentes sections : 
+	.startup : zone text de startup.o
+	.text : zone text de tous les autres .o : le code de tous les autres fichiers
+	.data : zone data de tous les .o
+	.bss : pas compris
+
+**  Why do we translate the ”kernel.elf” into a ”kernel.bin” via ”objcopy”
+
+C’est grâce à cela que le code peut être chargé en mémoire sur la board, la board ne peut pas comprendre les fichiers .elf.
+
+**  What ensures that we can debug?
+	C’est le fait que les .o sont obtenu par une compilation qui utilise l’option “-g” : le code compilé est un peu plus lourd car il contient des informations qui permettent le debogage par gdb.
+
+**  What is the meaning of the ”-nostdlib” option? Why is it necessary?
+	C’est pour ne pas inclure la librairie standard lors de la compilation des fichiers .c, nécessaire ici car cela voudrait dire que la librairie est définie quelque part sur la carte émulé, or ici ce n’est pas le cas (besoin de précisions).
+
+**  Try MEMORY=32K, it fails, why? Look at the linker script.
+
+	→ (3) Your guest kernel has a bug and crashed by jumping off into nowhere
+Dans kernel.ld on définit le point d’entrée à 0x100000, si on que a 32kB de mémoire, un tel point d’entrée est en dehors de la zone mémoire aloué par qemu pour émuler la machine.
+
+**  Could you use printf in the code? Why?
+	Non on ne peut pas utiliser de printf dans le code, c’est une fonction de la librairie standard donc comme on ne l’inclue pas dans la compilation notre programme n’aurait pas connaissance du code de la fonction printf et ne pourrait donc pas l’utiliser.
+
+*  Linker Script
+=Detail here your understanding of the linker script that we use.=
+=Why do we translate the ”kernel.elf” into a ”kernel.bin” via ”objcopy”=
+
+C’est grâce à cela que le code peut être chargé en mémoire sur la board, la board ne peut pas comprendre les fichiers .elf.
+
+=Why do we link our code to run at the 0x10000?=
+Car il semble que c’est à cette adresse que le processeur va commencer à lire le code quand il va “se réveiller”
+
+=Why do we make sure the code for the object file ”startup.o” is first?=
+Car c’est le bout de code qui permet de bouger le code à l’adresse 0x10000, si ce n’est pas déjà le cas et cela doit être fait avant de commencer à exécuter le reste de notre code.
+
+*  ELF Format
+=What is the ELF format?=
+→ D’après Wikipedia (https://fr.wikipedia.org/wiki/Executable_and_Linkable_Format ) :
+Chaque fichier ELF est constitué d'un en-tête fixe, puis de segments et de sections. Les segments contiennent les informations nécessaires à l'exécution du programme contenu dans le fichier, alors que les sections contiennent les informations pour la résolution des liens entre fonctions et le replacement des données. 
+
+=Why is it used as an object file format and an executable file format.=
+ Il est utilisé comme executable par qemu par exemple qui est capable de comprendre le code qui est représenté à l’intérieur, mais il est est aussi utilisé comme fichier objet par objcopy pour être traduit en binaire afin de pouvoir être éxécuté sur la board.
+
+
+=How does the ELF executable contain debug information? Which option=
+=must be given to the compiler and linker? Why to both?=
+En faisant arm-none-eabi-objdump -D kernel.elf j’ai vu les sections “.debug_line” “.debug_info” “.debug_abbrev” “.debug_aranges” “.debug_str” “.debug_frame”, j’imagine que ces sections sont celles qui ont été généré à la compilation grâce à l’option “-g” donné à gcc.
+Il y a une option donné au linker pour avoir des infos de debug ? Il me semble que les sections que j’ai décris plus haut sont déjà présentes dans les .o, le linker script ne fait que prendre tout le contenu des .o.
+
+=Confirm what ELF object files and the final ELF executable are with the=
+=shell command ”file”.=
+Il y a deux fichiers ELF ? 
+$ file kernel.elf
+kernel.elf: ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV), statically linked, with debug_info, not stripped
+Le fichier est bien reconnu comme un executable.
+
+=Look at the ELF object files and the final ELF executable with the tool:=
+=arm-none-eabi-objdump.=
+→ fait, utilisé pour répondre et comprendre les questions d’avant
+
+*  Startup Code
+=Read and understand the startup code in the file ”startup.s”.=
+=Explain here what it does.=
+
+Ce morceau de code regarde l’endroit en mémoire ou est chargé ce programme (_load), et si cette adresse est différente de _start le code est déplacé à _start
+
+*  Main Code
+Read and understand the main code in the file ”main.c”.
+Explain here what it does. In particular, explains how the characters you
+type in the terminal window actually appear on the terminal window.
+With a regular shell, the shell echoes the character as you type them. It
+only sends the characters once you hit the return key, as a complete line.
+It is the behavior you notice here?
+Dans main.c il y a : 
+	une fonction qui permet d’afficher un caractère sur la sortie standard
+	une fonction qui utilise la précédente pour affciher une chaine de caractère
+	Une fonction qui récupère des caractères sur l’entrée standard
+Le point d’entrée du programme est définit comme étant la fonction c_entry() dans le linker script, cette fonction boucle indéfiniment sur une portion de code qui :
+	tous les 50 millions de tours de boucle affichage du message “Zzzz….” pour montrer à l’utilisateur que le programme tourne toujours.
+	S’il y a eut une entrée saisie par l’utilisateur sur l’entrée standard : affichage sur la sortie standard, sinon rien.
+
+**  What is an UART and a serial line?
+	UART = un composant physique qui transforme un signal electrique en bit.
+	ligne serie = la ou circule les bits de données
+
+**  What is the purpose of a serial line here?
+	Pour permettre la communication avec la board pour obtenir des entrées / fournir des sorties (saisies clavier/ affichage à l’écran).
+
+**  What is the relationship between this serial line and the Terminal window
+running a shell on your laptop?
+Le terminale remplace la ligne série : c’est par le terminal que l’on passe pour donner les entrées clavier à qemu, et c’est ici que s’affiche ce que qemu renvoie
+
+**  What is the special testing of the value 13 as a special character and why
+do we send back ’\r’ and ’\n’ ?
+	Caractère 13 sur la table ASCII = carriage return : c’est pour afficher un retour à la ligne sur le terminal quand on appuie sur la touche “entrée”.
+Car quand la simulation de la board renvoie /n c’est ensuite interprété par notre terminal qui comprend que cela correspond a descendre d’une ligne, et /r pour revenir à la colonne 0
+
+**  Why can we say this program polls the serial line? Although it works,
+why is it not a good idea?
+Car ce programme lit en boucle sur la ligne série dans une boucle infinie, ce n’est pas une bonne idée car les capacités de calcul sont utilisées pour une attente active de contenue sur la ligne série.
+
+**  How could using hardware interrupts be a better solution?
+Ceci permet au système de se mettre en pause jusqu’a ce qu’il recoive un signal : moindre consommation énergietique.
+
+
+
+
+**  Could we say that the function uart send may block? Why?
+	Cela peut bloquer si le buffer de transmission est plein
+Ligne de code suivante :
+	while (*uart_fr & UART_TXFF);
+
+**  Could we say that the function uart receive is non-blocking? Why?
+	C’est non bloquant car s’il n’y a rien a récupérer : on renvoie 0, sinon on renvoie 1 et ce qui a été saisie est stoqué dans la variable pointé par le pointeur donné en paramètre.
+
+**  Explain why uart send is blocking and uart receive is non-blocking.
+La fonction d’envoie est bloquante car le programme fait envoyer au processeur des bits d’informations à l’uart, on est donc limité par le buffer de transmission
+La fonction uart receive est non bloquante car elle lit sur le buffer de réception de l’uart, s’il est vide on n’a pas récupéré de donnée, sinon on en récupère, ceci sans blocage possible
+
+*  Test Code 
+
+**  Blocking Uart-Receive
+
+Change the code so that the function uart receive is blocking.
+Why does it work in this particular test code?
+Why would it be an interesting change in this particular setting?
+J’ai écris une fonction “uart_receive_blocking” similaire à la fonction “receive” de base en mettant une boucle while similaire à la fonction “send”.
+Je ne vois pas particulièrement pourquoi c’est plus intéressant, ni ce qui fait que que cela la marche en particulier dans notre code de test
+
+**  Adding Printing
+
+We provided you with the code of a kernel-version of printf, the function called
+”kprintf” in the file ”kprintf.c”.
+Add it to the makefile so that it is compiled and linked in.
+J’ai modifié le makefile, et crée in fichier kprintf.h que j’ai inclue dans main.c
+
+Look at the function ”kprintf” and ”putchar” in the file ”kprintf.c”. Why is
+the function ”putchar” calling the function ”uart send”?
+Car c’est la fonction qui permet d’envoyer un caractère vers la sortie standard
+
+Use the function kprintf to actually print the code of the characters you type
+and not the characters themselves.
+Hit the following special keys:
+• left and right arrow.
+• backspace and delete key.
+Explain what you see.
+Fleche gauche : 27 + 91 + 68 ( ESC + [ + D )
+fleche droite : 27 + 91 + 67 ( ESC + [ + C )
+backspace : 127 ( DEL)
+delete : 51 + 126  ( 3 + ~ )
+On voit que les flèches de gauche et de droite ainsi que la touche delete sont interprêtés : la board renvoie plusieurs caractères pour les représenter 
+
+** Line editing
+
+The idea is now to allow the editing of the current line:
+• Using the left and right arrows
+• Using the ”backspace” and ”delete” keys
+First, experiment using the left/right arrows... and the backspace/delete
+keys...
+• Explain what you see
+• Explain what is happening?
+Now that you understand, write the code to allow for line editing.
+
+(je passe cette partie pour le moment afin de pouvoir passer à la suite j’y reviendrai plus tard)
+
+* Laboratory Log
+
+** Interruptions handling : 
+
+
+*** Ce que j’ai compris du chapitre “Processor modes” et “Exceptions” de la doc de l’architecture ARMv5 :
+	De base le processeur execute le programme en mode “user” (ou “Supervisor” étant donné que notre programme “remplace l’os” ), 
+c’est à nous de la faire passer dans un autre mode dit “privilégié” ou “mode d’exception” pour avoir accès à d’autres ressources sur le matériel physique depuis le programme. 
+Nous voulons donc passer en mode d’éxécution IRQ pour pouvoir gérer l’évenement externe au système “un caractère est tapé au clavier et arrive par la ligne série”.
+Quand une exception est levée, l’execution du processeur est forcé sur une adresse donnée (appellé “exception vector”) en fonction de quel type d’exception il s’agit :
+ pour une exception IRQ c’est l’adresse à laquelle la fonction *_irq_handler* qui nous est fournit dans "exceptions.s" se trouve.
+ 
+Les interruptions sont désactivées quand le bit “I” dans le registre CPSR est a 1, s’il est à 0 ARM va regarder s’il y a des “regular interruption request”.
+On nous donne une fonction (*_irqs_enable*) qui se charge de modifier le CPSR.
+
+Le CPSR (Current Program Status Register) est un registre particulier qui contient : l’état de certains flags, le mode de processeur courrant, et d’autres informations de status et de contrôle 
+Le SPSR (Saved Program Status Register) est un registre qui sert a sauvegarder l’état du CPSR en cas de gestion d’une exception.
+
+Certains registre ne sont pas “partagés” entre les différents mode de processeur, par exemple en mode IRQ les registres 13 et 14 (stack register et linker register) ne sont pas les mêmes qu’en mode Supervisor par exemple.
+
+Le processeur ne peut gérer qu’une seule interruption à la fois (on se limite à cela dans notre cas du moins)
+
+Il y a un registre spécial (UART Masked Interrupt Status Register) qui indique selon la valeur qu’il contient,
+ s’il y a une exception autorisées de l’UART qui est levée. Registre en read-only.
+Il y a un registre le (UART Interrupt Mask Set/Clear Register) qui indique si l’UART est autorisé à lever des exceptions.
+ Registre read/write : on peut modifier ici si on autorise les exceptions de l’UART en changeant un bit particulier dans ce mask.
+
+Il y a également un registre pour indiquer que l’on a finit de traiter l’exception de l’UART (UART Interrupt Clear Register), 
+il faut y écrire 1 pour indiquer que l’on a terminé de traiter l’interruption.
+Il est nécessaire de dire à l’UART que l’on a finit de traiter son exception pour qu’il puisse de nouveau en lever une quand il en aura besoin.
+
+Donc pour pouvoir gérer les exceptions sur notre board et pouvoir les utiliser dans notre contexte il faut dans un premier temps changer des paramètres contenus dans des registres spéciaux afin que le système détecte les exceptions levé par l’UART quand un caractère est tapé au clavier.
+Il faut faire le nécéssaire pour que le processeur passe en mode “IRQ” quand une telle exception est levée, afin de traiter l’exception.
+Il faut appeler la fonction _wfi depuis notre programme C pour endormir le processeur quand cela est nécéssaire.
+Il faut définir une structure de donnée qui sera remplie par les caractères tapé au clavier
+La pile n’étant pas la même (registre r13) quand le processeur est en mode “IRQ” que quand il est en mode “Supervisor”, il faut définir dans le linker script un espace mémoire pour cette nouvelle pile, 
+et faire le paramétrage du mode IRQ pour que r13_IRQ pointe sur cet espace mémoire.
+
+La partie “ISR” (Interrupt Service Routine) est lancé par “_irq_handler” en fonction de qui a levé une exception IRQ, dans notre cas on le lancera quand l’UART aura levé son exception.
+ISR gerera donc la manière dont l’exception est traitée, dans notre cas : 
+lecture des caractères au niveau de l’UART et remplissage du buffer circulaire tant qu’il y a des caractères / tant qu’il y a de la place dans le buffer
+Il faut ensuite faire des manipulations sur des registres particuliers pour dire à l’UART qu’on a finit de traiter son exception,
+ l’exécution du processeur repasse en mode “Supervisor” et notre programme principal va reprendre son execution normale :
+ lire dans le buffer les caractères qui ont été mit pour les affiché à l’écran. 
+(les dites manipulation sur ces registres sont inutiles : quand on lit un caractère sur la fifo de l’UART il y une détection comme quoi l’interruption a été traitée).
+
+
+*** Ce que j'ai mis en place dans le code
+
+**** UART
+
+#+BEGIN_SRC c
+/*
+ * uart.h
+ *
+ *  Created on: Jan 26, 2021
+ *      Author: Francois Robert
+ */
+
+#ifndef UART_H_
+#define UART_H_
+
+//#include <stddef.h>
+
+/**
+ * Look at the document describing the Versatile Application Board:
+ *
+ *    Versatile Application Baseboard for ARM926EJ-S (HBI-0118)
+ *
+ * Also referenced as DUI0225, downloadable from:
+ *
+ *  http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.dui0225d/I999714.html
+ *
+ * Look at the memory map, section 4.1, page 137, to find the base addresses for all
+ * the devices. We only use here the UARTs.
+ */
+#define UART0 0x101f1000
+#define UART1 0x101f2000
+#define UART2 0x101f3000
+
+/**
+ * PL011_T UART
+ *     http://infocenter.arm.com/help/topic/com.arm.doc.ddi0183f/DDI0183.pdf
+ *
+ * UARTDR: Data Register   (0x00)
+ *    To read received bytes
+ *    To write bytes to send
+ *    Bit Fields:
+ *      15:12 reserved
+ *      11:08 error flags
+ *       7:0  data bits
+ * UARTFR:  Flag Register  (0x18)
+ *    Bit Fields:
+ *      7:  TXFE  transmit FIFO empty
+ *      6:  RXFF  receive FIFO full
+ *      5:  TXFF  transmit FIFO full
+ *      4:  RXFE  receive FIFO empty
+ *      3:  BUSY  set when the UART is busy transmitting data
+ */
+
+#define UART_DR 0x00
+#define UART_FR 0x18
+
+#define UART_TXFE (1<<7)
+#define UART_RXFF (1<<6)
+#define UART_TXFF (1<<5)
+#define UART_RXFE (1<<4)
+#define UART_BUSY (1<<3)
+
+/**
+ * Receive a character from the given uart, this is a non-blocking call.
+ * Returns 0 if there are no character available.
+ * Returns 1 if a character was read.
+ */
+int uart_receive(int uart, unsigned char *s);
+
+/**
+ * Receive a character from the given uart, this is a blocking call.
+ * Returns 1 when a character was read.
+ */
+int uart_receive_blocking(int uart, unsigned char *s) ;
+
+/**
+ * Sends a character through the given uart, this is a blocking call.
+ * The code spins until there is room in the UART TX FIFO queue to send
+ * the character.
+ */
+void uart_send(int uart, unsigned char s);
+
+/**
+ * This is a wrapper function, provided for simplicity,
+ * it sends a C string through the given uart.
+ */
+void uart_send_string(int uart, const unsigned char *s);
+
+#define UART0IMSC UART0+0x38 // l'adresse du registre UART_IMSC de l'uart 0 (doc de l'UART)
+#define RXIM (1<<4) //le 4ème bit du registre UARTIMSC : Receive interrupt mask (doc de l'UART)
+#define UART0ICR UART0+0x44 //l'adresse du registre UART_ICR de l'uart 0 (doc de l'UART)
+#define RXIC (1<<4) //le 4ème bit du registre UART_ICR : Receive interrupt clear (doc de l'UART)
+
+#define VIC_BASE_ADDRESS 0x10140000 //adresse de base du VIC (trouvé dans la doc de la board : chapitre "interrupt controllers")
+#define VICINTENABLE 0x10140010 //l'adresse du registre VICINTENABLE (trouvé sur la doc du VIC )
+#define VICIRQSTATUS VIC_BASE_ADDRESS+0x000//l'adresse du registre VICIRQSTATUS (trouvé sur la doc du VIC )
+#define VIC_UART0_LINE (1<<12) //Doc de la board section sur l'UART : il est dit que pour UART 0 c'est le 12ème bit pour les interruptions
+
+#define UART0_IRQ 12
+
+/*
+     Cette fonction est appelée pour répondre à une exception levée par l'UART0 :
+     - Il faut d'abord récupérer les caractères au niveau de l'UART tant qu'il y en a pour
+     remplir le buffer circulaire (ou jusqu'a ce que le buffer soit plein)
+     - Il faut une fois finit mettre 1 dans le registre UART Interrupt Clear, pour dire à
+     l'UART que l'on a finit de traiter son exception pour qu'il puisse en lever de nouveau s'il en a besoin (Se fait tout seul si on lit dans la FIFO)
+*/
+void uart0_isr();
+
+//TODO :
+int read_buffer(char* c);
+
+#endif /* UART_H_ */
+
+#+END_SRC
+
+**** ISR 
+
+#+BEGIN_SRC c
+
+/*
+     Cette fonction est appelé par la fonction _irq_handler de exception.s :
+     Quand le PIC demande au processeur de traiter une exception IRQ, et que le 
+     processeur décide de la traiter, on arrive ici.
+     - Il faut donc commencer par savoir quelle est la source de l'exception,
+     si c'est l'UART0 (celui odnt on veut s'occuper ici) on appelle la routine
+     associée afin de traiter l'exception.  
+*/
+void irq_handler();
+
+/* 
+Cette fonction est appelé au lancement de notre "kernel", elle permet de 
+mettre en place tout ce qui est nécessaire à la gestion des exceptions IRQ :
+- Il faut autoriser l'UART a lever des exceptions :
+-> Pour ce faire : voir dans la doc de la board l'adresse du registre UART IMSC 0
+et voir quel bit il faut mettre à 1 pour signifier que l'UART0 peut lever des exceptions IRQ
+- Il faut définir l'adresse de la pile (stack) que notre programme va utiliser quand il sera
+en mode IRQ (les différents mode de processeur ne partageant pas tous les registres,
+c'est le cas ici pour r13 (le stack-pointer) et r14 (le link register) par ex ) :
+-> Pour ce faire : appel a la fonction _irqs_setup qui nous est fournie. 
+(Note : il a fallut définir dasn le linker script un espace pour cette nouvelle stack)
+- Il faut initialiser un buffer circulaire dans lequel on va mettre les caractères 
+que l'on peut lire dans l'UART0
+-> Pour ce faire on implémente une structure de buffer circulaire et on l'instancie en mémoire
+- Il faut autoriser l'UART0 à lever des exceptiosn au niveau du PIC :
+-> Pour ce faire je sais pas encore (voir doc) mais il faut passer un bit a 1 dans un mask (VICINTENABLE ou VICINTENCLEAR)
+*/
+void irqs_setup();
+
+/*
+Cette fonction autorise les exceptions au niveau du processeur 
+en modifiant le CPSR. Le code est fournie dans la fonction _irqs_enable
+dans exceptions.s. 
+*/
+void irqs_enable();
+
+/*
+Cette fonction désactive les exceptions au niveau du processeur 
+en modifiant le CPSR. Le code est fournie dans la fonction _irqs_enable
+dans exceptions.s.
+Pendant que le processeur ne gère plus les exceptions, le PIC lui continue 
+de le faire, ainsi, si on réactive les exceptions le processeur gerera les 
+exceptions qui ont été mise "en attente " le temps ou les exceptions étaient
+désactivés à ce niveau.
+*/
+void irqs_disable();
+
+/* Cette fonction est appelée lorsqu'une exception à été levée et que le processeur est passée en mode IRQ
+- Il faut renvoyer un entier qui permet d'identifier qui a levé l'exception
+*/
+int pic_next_raised_irq();
+#+END_SRC
+
+**** Makefile 
+j’ai ajouté les règles de compilation nécessaire au makefile puis changé les includes dans les fichiers concernés.
+
+**** Linker Script
+J’ai aussi ajouté la déclaration d'une stack pour le mode IRQ dans le linker script
+#+BEGIN_SRC 
+/* 
+  * Reserve some memory for the C stack
+  * for irq 
+  */
+ . = ALIGN(8);
+ . = . + 0x1000; /* 4kB of stack memory */
+ irq_stack_top = .;
+#+END_SRC
+
+**** Structure de donnée pour échanger en le mode *IRQ* et le mode *Supervisor*
+j'ai implémenté un buffer circulaire :
+#+BEGIN_SRC c :noweb tangle
+//On définit le buffer circulaire dont on se sert pour communiquer entre le mode IRQ et le programme principal
+#define MAX_CHARS 256
+volatile char buffer[MAX_CHARS];
+volatile int head = 0;
+volatile int tail = 0;
+#+END_SRC
+
+Pour ecrire dans le buffer
+#+NAME: ecriture-buffer
+#+BEGIN_SRC c
+char code;
+  int is_next = uart_receive(UART0,&code);
+  while (is_next) {
+    int next = (head + 1) % MAX_CHARS;
+    if (next==tail) //si le buffer est plein
+      return; 
+    //sinon on ajoute le caractère
+    buffer[head] = code;
+    head = next;
+    is_next = uart_receive(UART0,&code);
+  }
+#+END_SRC
+
+Pour lire dans le buffer
+#+NAME: lecture-buffer
+#+BEGIN_SRC c
+if (head == tail)
+    return 0;
+  else {
+    *c = buffer[tail];
+    tail++;
+    return 1;
+  }
+#+END_SRC
+
+**** Programme principal
+
+j'ai modifié le code de la fonction main:
+
+#+BEGIN_SRC c
+void c_entry() {
+  irqs_setup();
+  uart_send_string(UART0, "\nHello world!\n");
+  uart_send_string(UART0, "\nQuit with \"C-a c\" and then type in \"quit\".\n");
+   int eol = 0;
+   char c;
+    for (;;) {
+        eol=read_buffer(&c);
+        if (eol) {
+            kprintf("%c", c);
+        }
+        _wfi();
+    }
+}
+#+END_SRC
+
+
+
+Pour plus de détails on peut consulter le code produit à l’adresse suivante : 
+https://github.com/Robert-Fr/M2M/tree/master/Step0/workspace/arm.boot
+

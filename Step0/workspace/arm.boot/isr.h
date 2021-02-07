@@ -34,7 +34,7 @@ void irq_handler();
     que l'on peut lire dans l'UART0
     -> Pour ce faire on implémente une structure de buffer circulaire et on l'instancie en mémoire
     - Il faut autoriser l'UART0 à lever des exceptiosn au niveau du PIC :
-    -> Pour ce faire je sais pas encore (voir doc) mais il faut passer un bit a 1 dans un mask (VICINTENABLE ou VICINTENCLEAR)
+    -> Pour ce faire il faut passer un bit a 1 dans un mask (VICINTENABLE)
 */
 void irqs_setup();
 
@@ -57,8 +57,7 @@ void irqs_enable();
 void irqs_disable();
 
 /*   Cette fonction est appelée lorsqu'une exception à été levée et que le processeur est passée en mode IRQ
-     - Il faut renvoyer un entier qui permet d'identifier qui a levé l'exception 
-     TODO : voir doc de la board pour savoir ou regarder en mémoire
+     - Il faut renvoyer un entier qui permet d'identifier qui a levé l'exception
 */
   int pic_next_raised_irq();
 
