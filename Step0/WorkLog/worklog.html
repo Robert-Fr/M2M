@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr">
 <head>
 <title>Bare-Metal Development | M2M Lectures | Grenoble University | François ROBERT M2 - GI | January 12, 2021</title>
-<!-- 2021-02-07 Sun 17:23 -->
+<!-- 2021-02-15 Mon 18:38 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="Francois Robert" />
@@ -208,8 +208,8 @@ for the JavaScript code in this tag.
 <li><a href="#sec-8-1">8.1. What is an UART and a serial line?</a></li>
 <li><a href="#sec-8-2">8.2. What is the purpose of a serial line here?</a></li>
 <li><a href="#sec-8-3">8.3. What is the relationship between this serial line and the Terminal window</a></li>
-<li><a href="#sec-8-4">8.4. What is the special testing of the value 13 as a special character and why</a></li>
-<li><a href="#sec-8-5">8.5. Why can we say this program polls the serial line? Although it works,</a></li>
+<li><a href="#sec-8-4">8.4. What is the special testing of the value 13 as a special character and why do we send back ’\r’ and ’\n’ ?</a></li>
+<li><a href="#sec-8-5">8.5. Why can we say this program polls the serial line? Although it works,why is it not a good idea?</a></li>
 <li><a href="#sec-8-6">8.6. How could using hardware interrupts be a better solution?</a></li>
 <li><a href="#sec-8-7">8.7. Could we say that the function uart send may block? Why?</a></li>
 <li><a href="#sec-8-8">8.8. Could we say that the function uart receive is non-blocking? Why?</a></li>
@@ -229,6 +229,15 @@ for the JavaScript code in this tag.
 <ul>
 <li><a href="#sec-10-1-1">10.1.1. Ce que j’ai compris du chapitre “Processor modes” et “Exceptions” de la doc de l’architecture ARMv5 :</a></li>
 <li><a href="#sec-10-1-2">10.1.2. Ce que j'ai mis en place dans le code</a></li>
+</ul>
+</li>
+<li><a href="#sec-10-2">10.2. Linux Distribution :</a>
+<ul>
+<li><a href="#sec-10-2-1">10.2.1. Minidist directory</a></li>
+<li><a href="#sec-10-2-2">10.2.2. GRUB Bootloader</a></li>
+<li><a href="#sec-10-2-3">10.2.3. Minimal File-System Layout</a></li>
+<li><a href="#sec-10-2-4">10.2.4. The "init" process</a></li>
+<li><a href="#sec-10-2-5">10.2.5. The shell Setup</a></li>
 </ul>
 </li>
 </ul>
@@ -574,10 +583,9 @@ Le terminale remplace la ligne série : c’est par le terminal que l’on passe
 </div>
 
 <div id="outline-container-sec-8-4" class="outline-3">
-<h3 id="sec-8-4"><span class="section-number-3">8.4</span> What is the special testing of the value 13 as a special character and why</h3>
+<h3 id="sec-8-4"><span class="section-number-3">8.4</span> What is the special testing of the value 13 as a special character and why do we send back ’\r’ and ’\n’ ?</h3>
 <div class="outline-text-3" id="text-8-4">
 <p>
-do we send back ’\r’ and ’\n’ ?
         Caractère 13 sur la table ASCII = carriage return : c’est pour afficher un retour à la ligne sur le terminal quand on appuie sur la touche “entrée”.
 Car quand la simulation de la board renvoie /n c’est ensuite interprété par notre terminal qui comprend que cela correspond a descendre d’une ligne, et /r pour revenir à la colonne 0
 </p>
@@ -585,10 +593,9 @@ Car quand la simulation de la board renvoie /n c’est ensuite interprété par 
 </div>
 
 <div id="outline-container-sec-8-5" class="outline-3">
-<h3 id="sec-8-5"><span class="section-number-3">8.5</span> Why can we say this program polls the serial line? Although it works,</h3>
+<h3 id="sec-8-5"><span class="section-number-3">8.5</span> Why can we say this program polls the serial line? Although it works,why is it not a good idea?</h3>
 <div class="outline-text-3" id="text-8-5">
 <p>
-why is it not a good idea?
 Car ce programme lit en boucle sur la ligne série dans une boucle infinie, ce n’est pas une bonne idée car les capacités de calcul sont utilisées pour une attente active de contenue sur la ligne série.
 </p>
 </div>
@@ -1061,11 +1068,104 @@ Pour plus de détails on peut consulter le code produit à l’adresse suivante 
 </li></ol>
 </div>
 </div>
+
+
+<div id="outline-container-sec-10-2" class="outline-3">
+<h3 id="sec-10-2"><span class="section-number-3">10.2</span> Linux Distribution :</h3>
+<div class="outline-text-3" id="text-10-2">
+</div><div id="outline-container-sec-10-2-1" class="outline-4">
+<h4 id="sec-10-2-1"><span class="section-number-4">10.2.1</span> Minidist directory</h4>
+<div class="outline-text-4" id="text-10-2-1">
+<p>
+Dans le répertoire minidist il y a tout ce qu'il faut pour booter sur notre mini distribution :
+il y a deux images compressé du kernel linux et leurs deux configurations de build respectives
+il y a initrd.hello 
+grub ( le boot loader)
+</p>
+
+<p>
+Au boot de la machine, le BIOS charge le boot loader en mémoire à l'adresse 0x7c00.
+Il passe l'éxécution au boot loader (ici le stage 1 de GRUB)
+Grub va charger le kernel qui est aussi dans le répertoire minidist (un des deux en fonction du choix que l'on fait dans le menu )
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-10-2-2" class="outline-4">
+<h4 id="sec-10-2-2"><span class="section-number-4">10.2.2</span> GRUB Bootloader</h4>
+<div class="outline-text-4" id="text-10-2-2">
+<p>
+l'option du kernel "root=XXX" indique au kernel ou charger le répertoire racine 
+</p>
+
+<p>
+Hello est compilé avec l'option -static de gcc : ceci explique pourquoi les fichiers résultant de la compilation sont très lourds : il n'y a pas de lien dynamique vers des librairies extérieurs.
+L'executable obtenue contient le code en statique de toutes les modules extérieurs qu'il utilise, utile ici car on n'a pas inclu de librairies exterieurs dans notre mini distribution.
+</p>
+
+
+<p>
+initrd.hello = mise en place d'un répertoire racine temporaire minimal en mémoire ( d'ou root=/dev/ram) 
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-10-2-3" class="outline-4">
+<h4 id="sec-10-2-3"><span class="section-number-4">10.2.3</span> Minimal File-System Layout</h4>
+<div class="outline-text-4" id="text-10-2-3">
+<p>
+Je n'ai pas fait cette partie
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-10-2-4" class="outline-4">
+<h4 id="sec-10-2-4"><span class="section-number-4">10.2.4</span> The "init" process</h4>
+<div class="outline-text-4" id="text-10-2-4">
+<p>
+le programme "hello" est un executable autonome grace a l'option -static de gcc. 
+l'executable est gros car contient le code de toutes libs exterieurs qu'il utilise en statique.
+C'est nécessaire dasn notre cas car on a pas de librairie inclue dans notre petite distribution,
+donc obligé sinon il ne connait pas printf etc par exemple. 
+</p>
+
+<p>
+J'ai enlevé l'option -static de CFLAGS dans le makefile : 
+$ make
+$ ldd hello
+&gt; linux-gate.so.1 (0xf7f8f000)
+&gt; libc.so.6 =&gt; /lib/i386-linux-gnu/libc.so.6 (0xf7d95000)
+&gt; /lib/ld-linux.so.2 (0xf7f90000)
+</p>
+
+<p>
+j'ai mis les librairies prises dans "debian-initrd" dans Minidist/lib
+Le boot fonctionne quand je boot depuis le disque, pas avec initrd.
+Je pense que cela vient du fait que les librairies que j'ai mis sous /lib ne sont pas contenue dans initrd.hello.
+Pour que cela marche il faudrait modifier le makefile pour qu'il ne contienne pas que le programme hello, mais aussi les librairies dont le programme a besoin ?
+</p>
+</div>
+</div>
+
+
+<div id="outline-container-sec-10-2-5" class="outline-4">
+<h4 id="sec-10-2-5"><span class="section-number-4">10.2.5</span> The shell Setup</h4>
+<div class="outline-text-4" id="text-10-2-5">
+</div><ol class="org-ol"><li><a id="sec-10-2-5-1" name="sec-10-2-5-1"></a>The script "init"<br  /><div class="outline-text-5" id="text-10-2-5-1">
+<p>
+j'ai mis le script "init" sous Minidist/init et changé les entrées dans le menu de GRUB.
+Cela ne fonctionne pas car il n'y a pas de shell défini dans notre distributions pour le moment&#x2026;
+Je me suis arrêté la.
+</p>
+</div>
+</li></ol>
+</div>
+</div>
 </div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Auteur: Francois Robert</p>
-<p class="date">Created: 2021-02-07 Sun 17:23</p>
+<p class="date">Created: 2021-02-15 Mon 18:38</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 25.2.2 (<a href="http://orgmode.org">Org</a> mode 8.2.10)</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

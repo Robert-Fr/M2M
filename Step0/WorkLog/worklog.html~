@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr">
 <head>
 <title>Bare-Metal Development | M2M Lectures | Grenoble University | François ROBERT M2 - GI | January 12, 2021</title>
-<!-- 2021-02-07 Sun 17:21 -->
+<!-- 2021-02-07 Sun 17:23 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="Francois Robert" />
@@ -983,20 +983,17 @@ j'ai implémenté un buffer circulaire :
 </p>
 <div class="org-src-container">
 
-<pre class="src src-c" id="buffer">//On définit le buffer circulaire dont on se sert pour communiquer entre le mode IRQ et le programme principal
+<pre class="src src-c">//On définit le buffer circulaire dont on se sert pour communiquer entre le mode IRQ et le programme principal
 #define MAX_CHARS 256
 volatile char buffer[MAX_CHARS];
 volatile int head = 0;
 volatile int tail = 0;
-
-//Pour lire dans le buffer
-&lt;&lt;lecture-buffer&gt;&gt;
-
-//Pour ecrire dans le buffer
-&lt;&lt;ecriture-buffer&gt;&gt;
 </pre>
 </div>
 
+<p>
+Pour ecrire dans le buffer
+</p>
 <div class="org-src-container">
 
 <pre class="src src-c" id="ecriture-buffer">char code;
@@ -1013,6 +1010,9 @@ volatile int tail = 0;
 </pre>
 </div>
 
+<p>
+Pour lire dans le buffer
+</p>
 <div class="org-src-container">
 
 <pre class="src src-c" id="lecture-buffer">if (head == tail)
@@ -1065,7 +1065,7 @@ Pour plus de détails on peut consulter le code produit à l’adresse suivante 
 </div>
 <div id="postamble" class="status">
 <p class="author">Auteur: Francois Robert</p>
-<p class="date">Created: 2021-02-07 Sun 17:21</p>
+<p class="date">Created: 2021-02-07 Sun 17:23</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 25.2.2 (<a href="http://orgmode.org">Org</a> mode 8.2.10)</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
