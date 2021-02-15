@@ -179,13 +179,11 @@ Le point d’entrée du programme est définit comme étant la fonction c_entry(
 running a shell on your laptop?
 Le terminale remplace la ligne série : c’est par le terminal que l’on passe pour donner les entrées clavier à qemu, et c’est ici que s’affiche ce que qemu renvoie
 
-**  What is the special testing of the value 13 as a special character and why
-do we send back ’\r’ and ’\n’ ?
+**  What is the special testing of the value 13 as a special character and why do we send back ’\r’ and ’\n’ ?
 	Caractère 13 sur la table ASCII = carriage return : c’est pour afficher un retour à la ligne sur le terminal quand on appuie sur la touche “entrée”.
 Car quand la simulation de la board renvoie /n c’est ensuite interprété par notre terminal qui comprend que cela correspond a descendre d’une ligne, et /r pour revenir à la colonne 0
 
-**  Why can we say this program polls the serial line? Although it works,
-why is it not a good idea?
+**  Why can we say this program polls the serial line? Although it works,why is it not a good idea?
 Car ce programme lit en boucle sur la ligne série dans une boucle infinie, ce n’est pas une bonne idée car les capacités de calcul sont utilisées pour une attente active de contenue sur la ligne série.
 
 **  How could using hardware interrupts be a better solution?
@@ -550,4 +548,47 @@ void c_entry() {
 
 Pour plus de détails on peut consulter le code produit à l’adresse suivante : 
 https://github.com/Robert-Fr/M2M/tree/master/Step0/workspace/arm.boot
+
+
+** Linux Distribution :
+
+*** Minidist directory
+Dans le répertoire minidist il y a tout ce qu'il faut pour booter sur notre mini distribution :
+il y a deux images compressé du kernel linux et leurs deux configurations de build respectives
+il y a initrd.hello 
+grub ( le boot loader)
+
+Au boot de la machine, le BIOS charge le boot loader en mémoire à l'adresse 0x7c00.
+Il passe l'éxécution au boot loader (ici le stage 1 de GRUB)
+Grub va charger le kernel qui est aussi dans le répertoire minidist (un des deux en fonction du choix que l'on fait dans le menu )
+
+*** GRUB Bootloader
+
+l'option du kernel "root=XXX" indique au kernel ou charger le répertoire racine 
+
+Hello est compilé avec l'option -static de gcc : ceci explique pourquoi les fichiers résultant de la compilation sont très lourds : il n'y a pas de lien dynamique vers des librairies extérieurs.
+L'executable obtenue contient le code en statique de toutes les modules extérieurs qu'il utilise, utile ici car on n'a pas inclu de librairies exterieurs dans notre mini distribution.
+
+
+initrd.hello = mise en place d'un répertoire racine temporaire minimal en mémoire ( d'ou root=/dev/ram) 
+
+*** Minimal File-System Layout
+
+*** The "init" process
+le programme "hello" est un executable autonome grace a l'option -static de gcc. 
+l'executable est gros car contient le code de toutes libs exterieurs qu'il utilise en statique.
+C'est nécessaire dasn notre cas car on a pas de librairie inclue dans notre petite distribution,
+donc obligé sinon il ne connait pas printf etc par exemple. 
+
+J'ai enlevé l'option -static de CFLAGS dans le makefile : 
+$ make
+$ ldd hello
+> linux-gate.so.1 (0xf7f8f000)
+> libc.so.6 => /lib/i386-linux-gnu/libc.so.6 (0xf7d95000)
+> /lib/ld-linux.so.2 (0xf7f90000)
+
+j'ai mis les librairies prises dans "debian-initrd" dans Minidist/lib.
+
+*** The shell Setup
+Je n'ai pas fais cette partie ...
 
