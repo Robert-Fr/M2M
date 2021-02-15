@@ -1,0 +1,26 @@
+3 : 
+Dans le répertoire minidist il y a tout ce qu'il faut pour booter sur notre mini distribution :
+il y a deux images compressé du kernel linux et leurs deux configurations respectives
+il y a initrd.hello 
+grub
+
+Au boot de la machine, le BIOS charge le boot loader en mémoire à l'adresse 0x7c00, passe l'éxécution au boot loader (ici le stage 1 de GRUB)
+Grub va charger le kernel qui est aussi dans le répertoire minidist (un des deux en fonction du choix que l'on fait )
+
+4 
+installation de grub :
+
+hard disk boot VS ramdisk boot 
+l'option du kernel "root=XXX" indique au kernel ou charger le répertoire racine 
+
+Hello est compilé avec l'option -static de gc : ceci explique pourquoi les fichiers résultant de la compilation sont très lourds : il n'y a pas de lien dynamique vers des librairies extérieurs.
+L'executable obtenue contient le code en statique de toutes les modules extérieurs qu'il utilise, utile ici car on n'a pas inclu de librairies exterieurs dans notre mini distribution.
+
+
+initrd.hello = mise en place d'un répertoire racine temporaire minimal en mémoire dans la mémoire vive ( d'ou root =/dev/ram) 
+
+6 :
+option - static 
+gros car contient le code de toutes libs standars qu'il utilise etc
+on a pas de librairie inclue dans notre petite distribution donc obligé sinon il ne connait pas printf etc par exemple 
+
