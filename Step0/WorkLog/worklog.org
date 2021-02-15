@@ -573,6 +573,7 @@ L'executable obtenue contient le code en statique de toutes les modules extérie
 initrd.hello = mise en place d'un répertoire racine temporaire minimal en mémoire ( d'ou root=/dev/ram) 
 
 *** Minimal File-System Layout
+Je n'ai pas fait cette partie
 
 *** The "init" process
 le programme "hello" est un executable autonome grace a l'option -static de gcc. 
@@ -587,8 +588,13 @@ $ ldd hello
 > libc.so.6 => /lib/i386-linux-gnu/libc.so.6 (0xf7d95000)
 > /lib/ld-linux.so.2 (0xf7f90000)
 
-j'ai mis les librairies prises dans "debian-initrd" dans Minidist/lib.
+j'ai mis les librairies prises dans "debian-initrd" dans Minidist/lib
+Le boot fonctionne quand je boot depuis le disque, pas avec initrd.
+Je pense que cela vient du fait que les librairies que j'ai mis sous /lib 
+ne sont pas contenue dans initrd.hello (pour cela il faudrait modifier le makefile pour qu'il ne contienne pas que le programme hello mais aussi les librairies dont le programem a besoin ?
+
 
 *** The shell Setup
-Je n'ai pas fais cette partie ...
+
+j'ai mis le script "init" sous Minidist/init et changé les entrées dans le menu de GRUB
 
